@@ -16,7 +16,7 @@ async fn fetch_and_send_news() -> Result<(), Box<dyn std::error::Error>> {
     let filter_keywords = vec!["招聘", "招人"]; // Add more keywords to this vector as needed
 
     let mut count = 0;
-    let mut news = String::from("今日Rust社区热帖\n");
+    let mut news = String::from("今日Rust社区(https://rustcc.cn/)热帖\n");
     'outer: for item in channel.items() {
         let title = item.title().unwrap_or("No title");
         for keyword in &filter_keywords {
