@@ -6,8 +6,11 @@ use chrono::{Local, Timelike};
 
 async fn fetch_and_send_news() -> Result<(), Box<dyn std::error::Error>> {
     let url = "https://rustcc.cn/rss";
-    let body = reqwest::get(url).await?.text().await?;
+    let client = reqwest::Client::builder()
+    .danger_accept_invalid_certs(true)
+    .build()?;
 
+    let body = client.get(url).send().await?.text().await?;
     let channel = body.parse::<Channel>()?;
 
     let filter_keywords = vec!["招聘", "招人"]; // Add more keywords to this vector as needed
