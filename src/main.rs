@@ -4,65 +4,45 @@ use serde_json::json;
 use tokio::time::{Instant, Duration, sleep_until};
 use chrono::{Local, Timelike};
 
-async fn fetch_and_send_news() -> Result<(), Box<dyn std::error::Error>> {
-    let url = "https://rustcc.cn/rss";
-    let client = reqwest::Client::builder()
-    .danger_accept_invalid_certs(true)
-    .build()?;
-
-    let body = client.get(url).send().await?.text().await?;
-    let channel = body.parse::<Channel>()?;
-
-    let filter_keywords = vec!["招聘", "招人"]; // Add more keywords to this vector as needed
-
-    let mut count = 0;
-    let mut news = String::from("今日Rust社区(https://rustcc.cn/)热帖\n");
-    'outer: for item in channel.items() {
-        let title = item.title().unwrap_or("No title");
-        for keyword in &filter_keywords {
-            if title.contains(keyword) {
-                continue 'outer;
-            }
-        }
-        news.push_str(&format!("{}\n", title));
-        news.push_str(&format!("{}\n\n", item.link().unwrap_or("No link")));
-        count += 1;
-        if count >= 5 {
-            break;
-        }
+async fn send_bilibili(index: i32) -> Result<(), Box<dyn std::error::Error>> {
+    for i in index..(index+3)  {
+        let client = reqwest::Client::new();
+        let res = client.post("https://kim-robot.kwaitalk.com/api/robot/send?key=a1f19682-5857-4a01-b1eb-33409d327e62")
+            .header("Content-Type", "application/json")
+            .body(json!({
+                "msgtype": "text",
+                "text": {
+                    "content": format!("https://www.bilibili.com/video/BV1hp4y1k7SV?p={}", i)
+                }
+            }).to_string())
+            .send()
+            .await?;
+        println!("Response: {:?}", res);
+        
     }
 
-    let client = reqwest::Client::new();
-    let res = client.post("https://kim-robot.kwaitalk.com/api/robot/send?key=03bc4db2-66ee-4da4-b0e7-e5b005d9938f")
-        .header("Content-Type", "application/json")
-        .body(json!({
-            "msgtype": "text",
-            "text": {
-                "content": news
-            }
-        }).to_string())
-        .send()
-        .await?;
-
-    println!("Response: {:?}", res);
-
     Ok(())
+
+
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    fetch_and_send_news().await?;
+    let mut index: i32 = 15;
+    send_bilibili(index).await?;
+    index += 3;
 
     loop {
         let now = Local::now();
-        let next_ten_am = if now.hour() < 10 {
-            now.date().and_hms(10, 0, 0)
+        let next_ten_am = if now.hour() < 13 {
+            now.date().and_hms(12, 30, 0)
         } else {
-            now.date().succ().and_hms(10, 0, 0)
+            now.date().succ().and_hms(12, 30, 0)
         };
         let until_next_ten_am = (next_ten_am - now).to_std().unwrap_or_else(|_| Duration::from_secs(0));
         sleep_until(Instant::now() + until_next_ten_am).await;
 
-        fetch_and_send_news().await?;
+        send_bilibili(index).await?;
+        index += 3;
     }
 }
