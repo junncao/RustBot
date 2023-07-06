@@ -1,25 +1,40 @@
 use reqwest;
 use serde_json::json;
 use tokio::time::{Instant, Duration, sleep_until};
+use std::fs;
 use chrono::{Local, Timelike};
 use chrono::prelude::*;
-async fn send_bilibili(index: i32) -> Result<(), Box<dyn std::error::Error>> {
+use chatgpt::prelude::*;
+
+async fn send_request() -> Result<()> {
     let now = Utc::now();
     println!("now date: {}", now);
-    for i in index..(index+3)  {
-        let client = reqwest::Client::new();
-        let res = client.post("https://kim-robot.kwaitalk.com/api/robot/send?key=a1f19682-5857-4a01-b1eb-33409d327e62")
-            .header("Content-Type", "application/json")
-            .body(json!({
-                "msgtype": "text",
-                "text": {
-                    "content": format!("https://www.bilibili.com/video/BV1hp4y1k7SV?p={}", i)
-                }
-            }).to_string())
-            .send()
-            .await?;
-        println!("i: {}, Response: {:?}", i, res);
-    }
+    let key = "";
+
+    let client = ChatGPT::new(key)?;
+    let prompt = fs::read_to_string("src/prompt.txt")
+        .expect("Failed to read file");
+
+    let response = client
+        .send_message(prompt)
+        .await?;
+
+    println!("Response: {}", response.message().content);
+
+    
+    let client = reqwest::Client::new();
+    let res = client.post("https://kim-robot.kwaitalk.com/api/robot/send?key=92425d1b-d7a5-4340-9a7e-3633ac5eb638")
+        .header("Content-Type", "application/json")
+        .body(json!({
+            "msgtype": "text",
+            "text": {
+                "content": response.message().content
+            }
+        }).to_string())
+        .send()
+        .await?;
+
+    println!("{:?}", res);
 
     Ok(())
 
@@ -27,25 +42,21 @@ async fn send_bilibili(index: i32) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let pid = std::process::id();
     println!("The current process ID is {}", pid);
-    let mut index: i32 = 18;
-    send_bilibili(index).await?;
-    index += 3;
-
-    while index < 111{
+    send_request().await?;
+    loop {
         let now = Local::now();
-        let next_ten_am = if now.hour() < 11 {
-            now.date().and_hms(11, 0, 0)
+        let next_ten_am = if now.hour() < 10 {
+            now.date().and_hms(10, 0, 0)
         } else {
-            now.date().succ().and_hms(11, 0, 0)
+            now.date().succ().and_hms(10, 0, 0)
         };
         let until_next_ten_am = (next_ten_am - now).to_std().unwrap_or_else(|_| Duration::from_secs(0));
         sleep_until(Instant::now() + until_next_ten_am).await;
-
-        send_bilibili(index).await?;
-        index += 3;
+        send_request().await?;    
     }
+
     Ok(())
 }

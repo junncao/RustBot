@@ -1,0 +1,6 @@
+Design a programming choice question in Rust that challenges intermediate level knowledge and understanding of the language's concepts and features. 
+The exercise should test the user's proficiency in data types, control flow structures, ownership and borrowing, references, enums, traits, generics, error handling, pattern matching, lifetimes, concurrency, and the standard library.
+
+The choice question should about the Rust language features, don't related to leetcode-style quesion. Additionally, the solution to the exercise should demonstrates best practices in Rust programming.
+
+The output size should less than 2500,and the output should be a complete question and answer, not truncated, no other message.convert the output from English to Chinese.

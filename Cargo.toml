@@ -11,3 +11,4 @@ rss = "1.10"
 tokio = { version = "1", features = ["full"] }
 serde_json = { version = "1.0" }
 chrono = "0.4"
+chatgpt_rs = "1.1.10"
