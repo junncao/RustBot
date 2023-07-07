@@ -30,16 +30,16 @@ async fn send_bilibili(index: i32) -> Result<(), Box<dyn std::error::Error>> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pid = std::process::id();
     println!("The current process ID is {}", pid);
-    let mut index: i32 = 18;
+    let mut index: i32 = 23;
     send_bilibili(index).await?;
     index += 3;
 
     while index < 111{
         let now = Local::now();
-        let next_ten_am = if now.hour() < 11 {
-            now.date().and_hms(11, 0, 0)
+        let next_ten_am = if now.hour() < 9 {
+            now.date().and_hms(9, 0, 0)
         } else {
-            now.date().succ().and_hms(11, 0, 0)
+            now.date().succ().and_hms(9, 0, 0)
         };
         let until_next_ten_am = (next_ten_am - now).to_std().unwrap_or_else(|_| Duration::from_secs(0));
         sleep_until(Instant::now() + until_next_ten_am).await;
